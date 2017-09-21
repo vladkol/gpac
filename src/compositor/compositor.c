@@ -42,7 +42,7 @@ static void gf_sc_recompute_ar(GF_Compositor *compositor, GF_Node *top_node);
 
 void gf_sc_next_frame_state(GF_Compositor *compositor, u32 state)
 {
-//	GF_LOG(GF_LOG_DEBUG, GF_LOG_COMPOSE, ("[Compositor] Forcing frame redraw state: %d\n", state));
+//     GF_LOG(GF_LOG_DEBUG, GF_LOG_COMPOSE, ("[Compositor] Forcing frame redraw state: %d\n", state));
 	if (state==GF_SC_DRAW_FLUSH) {
 		if (!compositor->skip_flush)
 			compositor->skip_flush = 2;

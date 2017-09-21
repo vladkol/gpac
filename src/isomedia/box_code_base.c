@@ -2883,6 +2883,63 @@ GF_Err mdat_Size(GF_Box *s)
 
 #endif /*GPAC_DISABLE_ISOM_WRITE*/
 
+
+void idat_del(GF_Box *s)
+{
+	GF_ItemDataBox *ptr = (GF_ItemDataBox *)s;
+	if (!s) return;
+
+	if (ptr->data) gf_free(ptr->data);
+	gf_free(ptr);
+}
+
+
+GF_Err idat_Read(GF_Box *s, GF_BitStream *bs)
+{
+	GF_ItemDataBox *ptr = (GF_ItemDataBox *)s;
+	if (ptr == NULL) return GF_BAD_PARAM;
+
+	ptr->dataSize = s->size;
+	ptr->bsOffset = gf_bs_get_position(bs);
+
+	gf_bs_skip_bytes(bs, ptr->dataSize);
+	return GF_OK;
+}
+
+GF_Box *idat_New()
+{
+	ISOM_DECL_BOX_ALLOC(GF_ItemDataBox, GF_ISOM_BOX_TYPE_IDAT);
+	return (GF_Box *)tmp;
+}
+
+#ifndef GPAC_DISABLE_ISOM_WRITE
+
+GF_Err idat_Write(GF_Box *s, GF_BitStream *bs)
+{
+	GF_Err e;
+	GF_ItemDataBox *ptr = (GF_ItemDataBox *)s;
+	e = gf_isom_box_write_header(s, bs);
+	if (e) return e;
+
+	//make sure we have some data ...
+	//if not, we handle that independantly (edit files)
+	if (ptr->data) {
+		gf_bs_write_data(bs, ptr->data, (u32) ptr->dataSize);
+	}
+	return GF_OK;
+}
+
+GF_Err idat_Size(GF_Box *s)
+{
+	GF_ItemDataBox *ptr = (GF_ItemDataBox *)s;
+	ptr->size += ptr->dataSize;
+	return GF_OK;
+}
+
+#endif /*GPAC_DISABLE_ISOM_WRITE*/
+
+
+
 void mdhd_del(GF_Box *s)
 {
 	GF_MediaHeaderBox *ptr = (GF_MediaHeaderBox *)s;

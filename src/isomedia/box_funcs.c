@@ -392,6 +392,7 @@ ISOM_BOX_IMPL_DECL(reftype)
 ISOM_BOX_IMPL_DECL(ireftype)
 ISOM_BOX_IMPL_DECL(free)
 ISOM_BOX_IMPL_DECL(mdat)
+ISOM_BOX_IMPL_DECL(idat)
 ISOM_BOX_IMPL_DECL(moov)
 ISOM_BOX_IMPL_DECL(mvhd)
 ISOM_BOX_IMPL_DECL(mdhd)
@@ -798,7 +799,7 @@ static const struct box_registry_entry {
 	BOX_DEFINE( GF_ISOM_BOX_TYPE_FREE, free, "*"),
 	BOX_DEFINE( GF_ISOM_BOX_TYPE_SKIP, free, "*"),
 	BOX_DEFINE( GF_ISOM_BOX_TYPE_MDAT, mdat, "file"),
-	BOX_DEFINE( GF_ISOM_BOX_TYPE_IDAT, mdat, "meta"),
+	BOX_DEFINE( GF_ISOM_BOX_TYPE_IDAT, idat, "meta"),
 	BOX_DEFINE( GF_ISOM_BOX_TYPE_MOOV, moov, "file"),
 	FBOX_DEFINE( GF_ISOM_BOX_TYPE_MVHD, mvhd, "moov", 1),
 	FBOX_DEFINE( GF_ISOM_BOX_TYPE_MDHD, mdhd, "mdia", 1),

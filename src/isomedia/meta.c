@@ -202,6 +202,7 @@ GF_Err gf_isom_extract_meta_item_extended(GF_ISOFile *file, Bool root_meta, u32 
 	u32 item_num;
 	u32 item_type = 0;
 	u32 nalu_size_length = 0;
+	u64 idat_offset = 0;
 	char *item_name = NULL;
 
 	GF_MetaBox *meta = gf_isom_get_meta(file, root_meta, track_num);
@@ -227,17 +228,42 @@ GF_Err gf_isom_extract_meta_item_extended(GF_ISOFile *file, Bool root_meta, u32 
 	}
 
 	if (!location_entry) return GF_BAD_PARAM;
+
+	/* offsets are expressed from the start of the idat box instead of the start of the file */
+	if (location_entry->construction_method == 1) {
+		int found = 0;
+
+		count = gf_list_count(meta->other_boxes);
+		for (i = 0; i <count; i++) {
+			GF_Box *a = (GF_Box *)gf_list_get(meta->other_boxes, i);
+
+			if (a->type == GF_ISOM_BOX_TYPE_IDAT) {
+
+				GF_ItemDataBox *p = (GF_ItemDataBox *)a;
+				idat_offset = p->bsOffset;
+				found = 1;
+				break;
+
+			}
+			if (!found) {
+				GF_LOG(GF_LOG_WARNING, GF_LOG_CONTAINER, ("[IsoMedia] Item %d references an inexistant idat box\n", item_num));
+				return GF_BAD_PARAM;
+			}
+		}
+	}
+	/* when construction_method==1, data_reference_index is ignored */
 	/*FIXME*/
-	if (location_entry->data_reference_index) {
+	else if (location_entry->data_reference_index) {
 		char *item_url = NULL, *item_urn = NULL;
-		GF_Box *a = (GF_Box *)gf_list_get(meta->file_locations->dref->other_boxes, location_entry->data_reference_index-1);
-		if (a->type==GF_ISOM_BOX_TYPE_URL) {
+		GF_Box *a = (GF_Box *)gf_list_get(meta->file_locations->dref->other_boxes, location_entry->data_reference_index - 1);
+		if (a->type == GF_ISOM_BOX_TYPE_URL) {
 			item_url = ((GF_DataEntryURLBox*)a)->location;
-		} else if (a->type==GF_ISOM_BOX_TYPE_URN) {
+		}
+		else if (a->type == GF_ISOM_BOX_TYPE_URN) {
 			item_url = ((GF_DataEntryURNBox*)a)->location;
 			item_urn = ((GF_DataEntryURNBox*)a)->nameURN;
 		}
-		GF_LOG(GF_LOG_INFO, GF_LOG_CONTAINER, ("[IsoMedia] Item already outside the ISO file at URL: %s, URN: %s\n", (item_url?item_url:"N/A"), (item_urn?item_urn:"N/A") ));
+		GF_LOG(GF_LOG_INFO, GF_LOG_CONTAINER, ("[IsoMedia] Item already outside the ISO file at URL: %s, URN: %s\n", (item_url ? item_url : "N/A"), (item_urn ? item_urn : "N/A")));
 		return GF_OK;
 	}
 
@@ -313,7 +339,7 @@ GF_Err gf_isom_extract_meta_item_extended(GF_ISOFile *file, Bool root_meta, u32 
 		char buf_cache[4096];
 		u64 remain;
 		GF_ItemExtentEntry *extent_entry = (GF_ItemExtentEntry *)gf_list_get(location_entry->extent_entries, i);
-		gf_bs_seek(file->movieFileMap->bs, location_entry->base_offset + extent_entry->extent_offset);
+		gf_bs_seek(file->movieFileMap->bs, idat_offset + location_entry->base_offset + extent_entry->extent_offset);
 
 		remain = extent_entry->extent_length;
 		while (remain) {

@@ -554,6 +554,15 @@ typedef struct
 
 typedef struct
 {
+	GF_ISOM_BOX
+	/*note: the data is NEVER loaded to the mdat in this lib*/
+	u64 dataSize;
+	u64 bsOffset;
+	char *data;
+} GF_ItemDataBox;
+
+typedef struct
+{
   u64 time;
   u64 moof_offset;
   u32 traf_number;
